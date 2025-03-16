@@ -10,8 +10,8 @@ PRIVATE_KEY_PATH="$1"
 
 # Validate input
 if [[ -z "$PRIVATE_KEY_PATH" || ! -f "$PRIVATE_KEY_PATH" ]]; then
-  echo "Error: Private key file not found or invalid!"
-  echo "Usage: $0 <path-to-private-key.pem>"
+  >&2 echo "Error: Private key file not found or invalid!"
+  >&2 echo "Usage: $0 <path-to-private-key.pem>"
   exit 1
 fi
 
@@ -43,29 +43,29 @@ EOF
 # Generate JWT
 JWT=$(generate_jwt)
 
-# Debug: Print first 20 chars of JWT
-echo "Generated JWT: ${JWT:0:20}..."
+# Debug: Print first 20 chars of JWT (to stderr, not stdout)
+>&2 echo "Generated JWT: ${JWT:0:20}..."
 
 # Fetch installation token from GitHub API
-echo "Requesting installation token..."
+>&2 echo "Requesting installation token..."
 RESPONSE=$(curl -s -X POST \
   -H "Authorization: Bearer $JWT" \
   -H "Accept: application/vnd.github.v3+json" \
   "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens")
 
-# Debug: Print response structure without sensitive data
-echo "Response structure:"
-echo "$RESPONSE" | jq 'del(.token)'
+# Debug: Print response structure without sensitive data (to stderr)
+>&2 echo "Response structure:"
+echo "$RESPONSE" | jq 'del(.token)' >&2
 
 # Extract token
 INSTALLATION_ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.token')
 
-# Debug: Check if token is retrieved
+# Debug: Check if token is retrieved (to stderr)
 if [[ -z "$INSTALLATION_ACCESS_TOKEN" || "$INSTALLATION_ACCESS_TOKEN" == "null" ]]; then
-  echo "Error: Failed to fetch GitHub App installation token."
-  echo "Response was: $RESPONSE"
+  >&2 echo "Error: Failed to fetch GitHub App installation token."
+  >&2 echo "Response was: $RESPONSE"
   exit 1
 fi
 
-# Print token (useful for GitHub Actions)
+# Print ONLY the token to stdout (for capture in workflow)
 echo "$INSTALLATION_ACCESS_TOKEN"

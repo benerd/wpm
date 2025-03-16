@@ -2,6 +2,6 @@
   run: |
     printf "%s" "${{ secrets.GH_APP_PRIVATE_KEY }}" > private-key.pem
     chmod 600 private-key.pem
-    chmod +x ./.bin/get-github-app-token.sh
-    TOKEN=$(bash ./.bin/get-github-app-token.sh)
+    chmod +x ./.bin/generate-token.sh
+    TOKEN=$(bash ./.bin/generate-token.sh)
     echo "COMPOSER_TOKEN=$TOKEN" >> $GITHUB_ENV

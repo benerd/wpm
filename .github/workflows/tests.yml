@@ -1,21 +1,45 @@
 name: Get GitHub App Token
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - 'epic**'
 
 jobs:
-  get-token:
+  install-dependencies:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer
+          extensions: redis-6.0.2
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Create private key file
+        run: |
+          echo "${{ secrets.GH_APP_PRIVATE_KEY }}" | base64 --decode > private-key.pem
+          chmod 600 private-key.pem
+
       - name: Generate GitHub App Token
         run: |
-          echo "${{ secrets.GH_APP_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > private-key.pem
-          chmod 600 private-key.pem
-          cat private-key.pem | head -n 5  # Debugging: Show first 5 lines to verify format
-          chmod +x .bin/get-github-app-token.sh
           TOKEN=$(bash .bin/get-github-app-token.sh private-key.pem)
           echo "COMPOSER_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --prefer-dist

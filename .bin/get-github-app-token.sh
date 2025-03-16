@@ -55,7 +55,7 @@ RESPONSE=$(curl -s -X POST \
 
 # Debug: Print response structure without sensitive data
 echo "Response structure:"
-echo "$RESPONSE" | jq 'del(.token)'
+# echo "$RESPONSE" | jq 'del(.token)'
 
 # Extract token
 INSTALLATION_ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.token')

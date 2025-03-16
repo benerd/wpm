@@ -1,22 +1,21 @@
 name: Generate GitHub App Token
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   generate-token:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create private key file
+      - name: Write GitHub App Private Key to File
         run: |
-          echo "${{ secrets.GH_APP_PRIVATE_KEY }}" | base64 --decode > private-key.pem
+          echo "${{ secrets.GH_APP_PRIVATE_KEY }}" > private-key.pem
           chmod 600 private-key.pem
 
       - name: Generate GitHub App Token
         run: |
           TOKEN=$(bash .bin/get-github-app-token.sh private-key.pem)
-          echo "Generated Token: $TOKEN"
+          echo "COMPOSER_TOKEN=$TOKEN" >> $GITHUB_ENV

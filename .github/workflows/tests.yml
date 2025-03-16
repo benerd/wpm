@@ -31,7 +31,7 @@ jobs:
           
           echo "Executing token generation script..."
           
-          # Run with error handling
+          # Capture only the token (not debug output)
           TOKEN=$(.bin/get-github-app-token.sh private-key.pem)
           
           # Check if token was actually generated
@@ -40,10 +40,25 @@ jobs:
             exit 1
           fi
           
-          # Display the token (full token will be visible in logs)
-          echo "Generated token: $TOKEN"
+          # Store token securely as output and env var
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+          {
+            echo "GITHUB_TOKEN<<EOF"
+            echo "$TOKEN"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
           
-          # Set the token as an environment variable and output
-          echo "GITHUB_TOKEN=$TOKEN" >> $GITHUB_ENV
-          echo "token=$TOKEN" >> $GITHUB_OUTPUT
           echo "Token generated successfully"
+          
+      # Test the token works
+      - name: Use the token
+        run: |
+          # Test token with API call
+          response=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/installation/repositories)
+            
+          # Show repo count (safe to display)
+          echo "Token can access $(echo "$response" | jq '.total_count') repositories"
+  

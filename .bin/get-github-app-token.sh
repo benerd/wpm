@@ -1,9 +1,18 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # GitHub App Credentials
 APP_ID="1179405"
 INSTALLATION_ID="62690225"
-PRIVATE_KEY="${{ secrets.GH_APP_PRIVATE_KEY }}"
+PRIVATE_KEY_PATH="$1"
+
+# Validate input
+if [[ -z "$PRIVATE_KEY_PATH" || ! -f "$PRIVATE_KEY_PATH" ]]; then
+  echo "Error: Private key file not found!"
+  exit 1
+fi
 
 # Function to generate JWT
 generate_jwt() {
@@ -23,7 +32,7 @@ EOF
   HEADER_B64=$(echo -n "$HEADER" | openssl base64 -A | tr -d '=' | tr '/+' '_-')
   PAYLOAD_B64=$(echo -n "$PAYLOAD" | openssl base64 -A | tr -d '=' | tr '/+' '_-')
 
-  SIGNATURE=$(echo -n "$HEADER_B64.$PAYLOAD_B64" | openssl dgst -sha256 -sign <(echo -n "$PRIVATE_KEY") | openssl base64 -A | tr -d '=' | tr '/+' '_-')
+  SIGNATURE=$(echo -n "$HEADER_B64.$PAYLOAD_B64" | openssl dgst -sha256 -sign "$PRIVATE_KEY_PATH" | openssl base64 -A | tr -d '=' | tr '/+' '_-')
 
   echo "$HEADER_B64.$PAYLOAD_B64.$SIGNATURE"
 }

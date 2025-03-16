@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync:
+  get-token:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,11 +13,8 @@ jobs:
 
       - name: Generate GitHub App Token
         run: |
-          printf "%s" "${{ secrets.GH_APP_PRIVATE_KEY }}" > private-key.pem
+          echo "${{ secrets.GH_APP_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > private-key.pem
           chmod 600 private-key.pem
           chmod +x .bin/get-github-app-token.sh
-          TOKEN=$(bash .bin/get-github-app-token.sh)
+          TOKEN=$(bash .bin/get-github-app-token.sh private-key.pem)
           echo "COMPOSER_TOKEN=$TOKEN" >> $GITHUB_ENV
-
-      - name: Install Composer Dependencies
-        run: composer install --no-interaction --prefer-dist

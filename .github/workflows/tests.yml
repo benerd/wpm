@@ -1,4 +1,4 @@
-name: Sync Pantheon Environment
+name: Get GitHub App Token
 
 on:
   workflow_dispatch:

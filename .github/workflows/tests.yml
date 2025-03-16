@@ -1,7 +1,7 @@
 name: Generate GitHub App Token
 
 on:
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
 
 jobs:
   generate-token:
@@ -10,12 +10,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Write GitHub App Private Key to File
         run: |
           echo "${{ secrets.GH_APP_PRIVATE_KEY }}" > private-key.pem
           chmod 600 private-key.pem
+          # Verify the private key format
+          if ! grep -q "BEGIN RSA PRIVATE KEY" private-key.pem; then
+            echo "::error::Private key does not appear to be in valid PEM format"
+            exit 1
+          fi
 
       - name: Generate GitHub App Token
+        id: generate_token
         run: |
-          TOKEN=$(bash .bin/get-github-app-token.sh private-key.pem)
-          echo "COMPOSER_TOKEN=$TOKEN" >> $GITHUB_ENV
+          # Make script executable
+          chmod +x ./get-github-app-token.sh
+          
+          echo "Executing token generation script..."
+          
+          # Run with error handling
+          TOKEN=$(./get-github-app-token.sh private-key.pem)
+          
+          # Check if token was actually generated
+          if [[ -z "$TOKEN" ]]; then
+            echo "::error::Generated token is empty"
+            exit 1
+          fi
+          
+          # Set the token as an environment variable and output
+          echo "GITHUB_TOKEN=$TOKEN" >> $GITHUB_ENV
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+          echo "Token generated successfully"
+      
+      # Optional: Test the token with a simple API call
+      - name: Test GitHub Token
+        run: |
+          echo "Testing the generated token..."
+          curl -s -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" \
+               -H "Accept: application/vnd.github.v3+json" \
+               https://api.github.com/user

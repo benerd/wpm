@@ -47,6 +47,3 @@ jobs:
           echo "GITHUB_TOKEN=$TOKEN" >> $GITHUB_ENV
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
           echo "Token generated successfully"
-
-      - name: Print GitHub App Token
-        run: echo "Generated token: ${{ steps.generate_token.outputs.token }}"

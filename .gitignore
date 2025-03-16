@@ -6,7 +6,7 @@
 /*
 !.github
 !.gitignore
-!bin
+!.bin
 !composer.json
 !composer.lock
 !README.md

@@ -27,12 +27,12 @@ jobs:
         id: generate_token
         run: |
           # Make script executable
-          chmod +x ./get-github-app-token.sh
+          chmod +x .bin/get-github-app-token.sh
           
           echo "Executing token generation script..."
           
           # Run with error handling
-          TOKEN=$(./get-github-app-token.sh private-key.pem)
+          TOKEN=$(.bin/get-github-app-token.sh private-key.pem)
           
           # Check if token was actually generated
           if [[ -z "$TOKEN" ]]; then

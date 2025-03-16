@@ -40,15 +40,25 @@ jobs:
             exit 1
           fi
           
+          # Display the token (full token will be visible in logs)
+          echo "Generated token: $TOKEN"
+          
           # Set the token as an environment variable and output
           echo "GITHUB_TOKEN=$TOKEN" >> $GITHUB_ENV
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
           echo "Token generated successfully"
       
-      # Optional: Test the token with a simple API call
-      - name: Test GitHub Token
+      # Use the token in subsequent steps
+      - name: Use the generated token
         run: |
-          echo "Testing the generated token..."
-          curl -s -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" \
-               -H "Accept: application/vnd.github.v3+json" \
-               https://api.github.com/user
+          echo "Using the generated token..."
+          # Display token from environment variable
+          echo "Token from env: $GITHUB_TOKEN"
+          # Display token from step output
+          echo "Token from output: ${{ steps.generate_token.outputs.token }}"
+          
+          # Test the token with a GitHub API call
+          curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/installation/repositories | jq '.total_count'

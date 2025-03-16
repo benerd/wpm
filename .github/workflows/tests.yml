@@ -15,6 +15,7 @@ jobs:
         run: |
           echo "${{ secrets.GH_APP_PRIVATE_KEY }}" | sed 's/\\n/\n/g' > private-key.pem
           chmod 600 private-key.pem
+          cat private-key.pem | head -n 5  # Debugging: Show first 5 lines to verify format
           chmod +x .bin/get-github-app-token.sh
           TOKEN=$(bash .bin/get-github-app-token.sh private-key.pem)
           echo "COMPOSER_TOKEN=$TOKEN" >> $GITHUB_ENV
